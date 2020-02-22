@@ -3,9 +3,12 @@
   ;; Imports.
   ;; NOTE: Import must occur before all other declarations.
   (import "events" "notifyPieceCrowned"
-    (func $host_notifyPieceCrowned (param $pieceX i32) (param $pieceY i32)))
+    (func $host_notifyPieceCrowned (param $pieceX i32) (param $pieceY i32))
+  )
   (import "events" "notifyPieceMoved"
-    (func $host_notifyPieceMoved (param $pieceX i32) (param $pieceY i32)))
+    (func $host_notifyPieceMoved (param $fromX i32) (param $fromY i32)
+                                  (param $toX i32) (param $toY i32))
+  )
 
 
   ;; Exports.
@@ -218,6 +221,123 @@
   )
 
 
-  
+  ;; Validate conditions to ensure move is kosher
+  (func $isValidMove (param $fromX i32) (param $fromY i32)
+                      (param $toX i32) (param $toY i32)
+                      (result i32)
+    ;; Create local variables player's for current position and target position.
+    (local $player i32)
+    (local $target i32)
+    (set_local $player (call $getPiece (get_local $fromX) (get_local $fromY)))
+    (set_local $target (call $getPiece (get_local $toX) (get_local $toY)))
+
+    ;; Validate that the jump distance is valid, and it is the current player's turn.
+    (if (result i32)
+      (block (result i32)
+        (i32.and
+          (call $validJumpDistance (get_local $fromY) (get_local $toY))
+          (i32.and
+            (call $isPlayersTurn (get_local $player))
+            ;; Check target space is unnoccupied
+            (i32.eq (get_local $target) (i32.const 0))
+          )
+        )
+      )
+      (then
+        (i32.const 1)
+      )
+      (else
+        (i32.const 0)
+      )
+    )
+  )
+
+  ;; Ensure that jump distance is either 1 or 2 squares
+  (func $validJumpDistance (param $from i32) (param $to i32) (result i32)
+    (local $d i32)
+    (set_local $d
+      (if (result i32)
+        (i32.gt_s (get_local $to) (get_local $from))
+        (then
+          (call $distance (get_local $to) (get_local $from))
+        )
+        (else
+          (call $distance (get_local $from) (get_local $to))
+        )
+      )
+    )
+    (i32.le_u
+      (get_local $d)
+      (i32.const 2)
+    )
+  )
+
+  ;; Move a player's piece. Returns 0 on success, and 1 on error.
+  (func $move (param $fromX i32) (param $fromY i32)
+              (param $toX i32) (param $toY i32)
+              (result i32)
+    (if (result i32)
+      (block (result i32)
+        (call $isValidMove (get_local $fromX) (get_local $fromY)
+                            (get_local $toX) (get_local $toY))
+      )
+      (then
+        (call $do_move (get_local $fromX) (get_local $fromY)
+                            (get_local $toX) (get_local $toY))
+      )
+      (else
+        (i32.const 0)
+      )
+    )
+  )
+
+
+  ;; Internal move logic, performs the actual move mechanics after validation.
+  ;; Called by `move` which is the exported function the host calls.
+  ;; TODO:
+  ;;    - remove opponent piece during a jump
+  ;;    - detecting win conditon
+  (func $do_move (param $fromX i32) (param $fromY i32)
+              (param $toX i32) (param $toY i32) (result i32)
+
+    ;; Declare and set local variable for current piece.
+    (local $currPiece i32)
+    (set_local $currPiece (call $getPiece (get_local $fromX) (get_local $fromY)))
+
+    ;; Toggle the current player's turn.
+    (call $toggleTurnOwner)
+
+    ;; Set the target space as containing the current piece.   
+    (call $setPiece (get_local $toX) (get_local $toY) (get_local $currPiece))
+
+    ;; Unset current player's old space back to empty.
+    (call $setPiece (get_local $fromX) (get_local $fromY) (i32.const 0))
+
+    ;; Check if the player should be crowned, and do so if needed.
+    (if (call $shouldCrown (get_local $toY) (get_local $currPiece))
+      (then (call $crownPiece (get_local $toX) (get_local $toY)))
+    )
+    
+    ;; Call host's move callback.
+    (call $host_notifyPieceMoved (get_local $fromX) (get_local $fromY)
+                            (get_local $toX) (get_local $toY))
+    (i32.const 1)
+  )
+
+
+  ;; Set the initial state of the board;
+  (func $initBoard
+
+    ;; Set the white pieces at the bottom of the board
+    (call $setPiece (i32.const 1) (i32.const 0) (i32.const 2))
+    (call $setPiece (i32.const 3) (i32.const 0) (i32.const 2))
+    (call $setPiece (i32.const 5) (i32.const 0) (i32.const 2))
+    (call $setPiece (i32.const 7) (i32.const 0) (i32.const 2))
+    
+
+
+    ;; Black goes first
+    (call $setTurnOwner (i32.const 1))
+  )
 
 )
