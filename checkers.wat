@@ -12,13 +12,13 @@
 
 
   ;; Exports.
-  (export "indexForPosition" (func $indexForPosition))
-  (export "offsetForPosition" (func $offsetForPosition))
+  (export "initBoard" (func $initBoard))
+  (export "getPiece" (func $getPiece))
   (export "isCrowned" (func $isCrowned))
+  (export "getTurnOwner" (func $getTurnOwner))
+  (export "move" (func $move))
   (export "isWhite" (func $isWhite))
   (export "isBlack" (func $isBlack))
-  (export "withCrown" (func $withCrown))
-  (export "withoutCrown" (func $withoutCrown))
   (export "memory" (memory $mem))
 
 
@@ -328,13 +328,39 @@
   ;; Set the initial state of the board;
   (func $initBoard
 
-    ;; Set the white pieces at the bottom of the board
+    ;; Set the white pieces at the top of the board
+    ;; first row
     (call $setPiece (i32.const 1) (i32.const 0) (i32.const 2))
     (call $setPiece (i32.const 3) (i32.const 0) (i32.const 2))
     (call $setPiece (i32.const 5) (i32.const 0) (i32.const 2))
     (call $setPiece (i32.const 7) (i32.const 0) (i32.const 2))
-    
+    ;; second row
+    (call $setPiece (i32.const 0) (i32.const 1) (i32.const 2))
+    (call $setPiece (i32.const 2) (i32.const 1) (i32.const 2))
+    (call $setPiece (i32.const 4) (i32.const 1) (i32.const 2))
+    (call $setPiece (i32.const 6) (i32.const 1) (i32.const 2))
+    ;; third row
+    (call $setPiece (i32.const 1) (i32.const 2) (i32.const 2))
+    (call $setPiece (i32.const 3) (i32.const 2) (i32.const 2))
+    (call $setPiece (i32.const 5) (i32.const 2) (i32.const 2))
+    (call $setPiece (i32.const 7) (i32.const 2) (i32.const 2))
 
+    ;; Set the black pieces at the bottom of the board
+    ;; first row
+    (call $setPiece (i32.const 0) (i32.const 7) (i32.const 1))
+    (call $setPiece (i32.const 2) (i32.const 7) (i32.const 1))
+    (call $setPiece (i32.const 4) (i32.const 7) (i32.const 1))
+    (call $setPiece (i32.const 6) (i32.const 7) (i32.const 1))
+    ;; second row
+    (call $setPiece (i32.const 1) (i32.const 6) (i32.const 1))
+    (call $setPiece (i32.const 3) (i32.const 6) (i32.const 1))
+    (call $setPiece (i32.const 5) (i32.const 6) (i32.const 1))
+    (call $setPiece (i32.const 7) (i32.const 6) (i32.const 1))
+    ;; third row
+    (call $setPiece (i32.const 0) (i32.const 5) (i32.const 1))
+    (call $setPiece (i32.const 2) (i32.const 5) (i32.const 1))
+    (call $setPiece (i32.const 4) (i32.const 5) (i32.const 1))
+    (call $setPiece (i32.const 6) (i32.const 5) (i32.const 1))
 
     ;; Black goes first
     (call $setTurnOwner (i32.const 1))
