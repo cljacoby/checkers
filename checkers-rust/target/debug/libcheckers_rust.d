@@ -1,0 +1,1 @@
+/Users/chris/learning-wasm/checkers/checkers-rust/target/debug/libcheckers_rust.dylib: /Users/chris/learning-wasm/checkers/checkers-rust/src/board.rs /Users/chris/learning-wasm/checkers/checkers-rust/src/game.rs /Users/chris/learning-wasm/checkers/checkers-rust/src/lib.rs
