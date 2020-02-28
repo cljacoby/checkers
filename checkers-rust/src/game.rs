@@ -44,4 +44,88 @@ impl GameEngine {
             });
 
     }
+
+    pub fn move_piece(&mut self, mv: &Move) -> Result<MoveResult, ()> {
+        // Err(())
+        let legal_moves = self.legal_moves();
+        
+        if !legal_moves.contains(mv) {
+            return Err(());
+        }
+
+        // Get 'to' and 'from' coordinates
+        let Coordinate(fx, fy) = mv.from;
+        let Coordinate(tx, ty) = mv.to;
+        // TODO: Remove use of unwrap with better validation
+        let piece = self.board[fx][fy].unwrap();
+
+        // Assess whether a piece is being jumped, and if so remove it from the board
+        let midpiece_coordinate = self.midpiece_coordinate(fx, fy, tx, ty);
+        if let Some(Coordinate(x, y)) = midpiece_coordinate {
+            // Remove the piece which was jumped by setting space to None
+            self.board[x][y] = None;
+        }
+
+        // Moves piece from soure to destination
+        self.board[tx][ty] = Some(piece);
+        self.board[fx][fy] = None;
+
+        // Assess whether or not to crown piece
+        let crowned = if self.should_crown(piece, mv.to) {
+            self.crown_piece(mv.to);
+            true
+        } else {
+            false
+        };
+        self.advance_turn();
+
+        Ok(MoveResult {
+            mv: mv.clone(),
+            crowned,
+        })
+    }
+
+    fn legal_moves(&self) -> Vec<Move> {
+        let mut moves: Vec<Move> = Vec::new();
+        for col in 0..8 {
+            for row in 0..8 {
+                if let Some(piece) = self.board[col][row] {
+                    if piece.color == self.current_turn {
+                        let loc = Coordinate(col, row);
+                        let mut valid_moves = self.valid_moves_from(loc);
+                        moves.append(&mut valid_moves);
+                    }
+                }
+            }
+        }
+
+        moves
+    }
+
+    fn valid_moves_from(&self, loc:Coordinate) -> Vec<Move> {
+        let Coordinate(x, y) = loc;
+        if let Some(p) = self.board[x][y] {
+            let mut jumps = loc
+                .jump_targets_from()
+                .filter(|t| self.valid_jump(&p, &loc, &t))
+                .map(|ref t| Move {
+                    from: loc.clone(),
+                    to: t.clone(),
+                }).collect::<Vec<Move>>();
+            let mut moves = loc
+                .move_targets_from()
+                .filter(|t| self.valid_move(&p, &loc, &t))
+                .map(|ref t| Move {
+                    from: loc.clone(),
+                    to: t.clone(),
+                }).collect::<Vec<Move>>();
+            jumps.append(&mut moves);
+            jumps
+        } else {
+            Vec::new()
+        }
+    }
+
+
+
 }
