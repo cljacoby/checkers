@@ -1,11 +1,17 @@
+use std::error::Error;
+
 use super::board::{Coordinate, GamePiece, Move, PieceColor};
 
+// NOTE: Had to add Copy trait on GameEngine in order to compile. This seems wrong.
+
+#[derive(Debug, Clone, PartialEq, Copy)]
 pub struct GameEngine {
     board: [[Option<GamePiece>; 8]; 8],
-    current_turn: PieceColor,
-    move_count: u32,
+    pub current_turn: PieceColor,
+    pub move_count: u32,
 }
 
+#[derive(Debug, Clone, PartialEq, Copy)]
 pub struct MoveResult {
     pub mv: Move,
     pub crowned: bool,
@@ -31,7 +37,7 @@ impl GameEngine {
 
     // Change turn owner to the other color
     pub fn advance_turn(&mut self) {
-        match (self.current_turn) {
+        match self.current_turn {
             PieceColor::White => { self.current_turn = PieceColor::Black },
             PieceColor::Black => { self.current_turn = PieceColor::White },
         }
@@ -55,7 +61,14 @@ impl GameEngine {
             .for_each(|(x, y)| {
                 self.board[x][x] = Some(GamePiece::new(PieceColor::White));
             });
+    }
 
+    pub fn get_piece(self, loc: Coordinate) -> Result<Option<GamePiece>, Box<Error>> {
+        let Coordinate(x, y) = loc;
+        match self.board[x][y] {
+            Some(piece) => { Ok(Some(piece)) },
+            None => { Ok(None) }
+        }
     }
 
     pub fn move_piece(&mut self, mv: &Move) -> Result<MoveResult, ()> {
@@ -158,14 +171,22 @@ impl GameEngine {
         }
     }
 
-    // TODO: Implement
+    // TODO: Revise with thorough implementation 
     pub fn valid_move(&self, piece: &GamePiece, loc: &Coordinate, target: &Coordinate) -> bool {
-        false
+        if 0 > target.0 { return false; }
+        if 0 > target.1 { return false; }
+        if 7 < target.0 { return false; }
+        if 7 < target.1 { return false; }
+        true
     }
 
     // TODO: Implement
     pub fn valid_jump(&self, piece: &GamePiece, loc: &Coordinate, target: &Coordinate) -> bool {
-        false
+        if 0 > target.0 { return false; }
+        if 0 > target.1 { return false; }
+        if 7 < target.0 { return false; }
+        if 7 < target.1 { return false; }
+        true
     }
 
     pub fn midpiece_coordinate(&self, fx: usize, fy: usize, tx: usize, ty: usize) -> Option<Coordinate> {

@@ -31,22 +31,6 @@ impl GamePiece {
     }
 }
 
-impl Into<i32> for GamePiece {
-    fn into(self) -> i32 {
-        let mut val: u8 = 0;
-        match self.color {
-            GamePiece::White => { val += PIECEFLAG_WHITE; },
-            GamePiece::Black => { val += PIECEFLAG_BLACK; },
-        }
-        match self.crowned {
-            true => { val += PIECEFLAG_CROWN; }
-            false => {},
-        }
-
-        val as i32
-    }
-}
-
 #[derive(Debug, Clone, PartialEq, Copy)]
 pub struct Coordinate(pub usize, pub usize);
 
