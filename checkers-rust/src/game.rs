@@ -6,7 +6,7 @@ use super::board::{Coordinate, GamePiece, Move, PieceColor};
 
 #[derive(Debug, Clone, PartialEq, Copy)]
 pub struct GameEngine {
-    board: [[Option<GamePiece>; 8]; 8],
+    pub board: [[Option<GamePiece>; 8]; 8],
     pub current_turn: PieceColor,
     pub move_count: u32,
 }
@@ -24,7 +24,6 @@ pub struct MoveResult {
 // even if checkers has a standard board size. It makes the code more readable.
 impl GameEngine {
     pub fn new() -> Self {
-        
         let mut engine = GameEngine {
             board: [[None; 8]; 8],
             current_turn: PieceColor::Black,
@@ -72,7 +71,6 @@ impl GameEngine {
     }
 
     pub fn move_piece(&mut self, mv: &Move) -> Result<MoveResult, ()> {
-        // Err(())
         let legal_moves = self.legal_moves();
         
         if !legal_moves.contains(mv) {
@@ -109,6 +107,15 @@ impl GameEngine {
             mv: mv.clone(),
             crowned,
         })
+
+        // Ok(MoveResult {
+        //     mv: Move{
+        //         from: Coordinate(0 as usize, 0 as usize),
+        //         to: Coordinate(1 as usize, 1 as usize)
+        //     },
+        //     crowned: false
+        // })
+
     }
 
     // Boolean indicating if piece should be crowned when moved to target location
